@@ -13,11 +13,46 @@ BLOCK_FONT_COLOR = "444444";
 
 
 // GLobal Utility Functions
-
+randInt = function(a, b) {
+    return a + Math.floor(Math.random() * (b + 1 - a));
+}
+randChoice = function(arr) {
+    return arr[randInt(0, arr.length - 1)];
+}
 
 
 // Model
 class GameModel {
+    constructor() {
+        this.data = [];
+        this.init_data();
+    }
+
+    init_data() {
+        this.data = [];
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+            let row_tmp = [];
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
+                row_tmp.push(null);
+            }
+            this.data.push(row_tmp);
+        }
+        this.gen_new_block();
+    }
+    
+    gen_new_block() {
+        let null_content_locations = [];
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
+                if (this.data[row_index][col_index] == null) {
+                    null_content_locations.push([row_index, col_index]);
+                }
+            }
+        }
+    
+        let location = randChoice(null_content_locations);
+        this.data[location[0]][location[1]] = 2;
+    }
 
 }
 
@@ -25,7 +60,8 @@ class GameModel {
 
 // View
 class GameView {
-    constructor(container) {
+    constructor(data, container) {
+        this.data = data;
         this.container = container;
         this.init_container();
     }
@@ -77,8 +113,18 @@ class GameView {
             }
         }
         // draw new blocks
-        let location_new = [BLOCK_PADDING_SIZE, BLOCK_PADDING_SIZE];
-        this.draw_block(location_new, "5");
+        for (let row_index = 0;row_index < BLOCK_COUNT; row_index++){
+            for (let col_index = 0;col_index < BLOCK_COUNT; col_index++){
+                let new_location = this.block_num_to_location(row_index+1, col_index+1);
+                let new_content = this.data[row_index][col_index];
+                if (new_content != null) {
+                    console.log(row_index, col_index, new_content);
+                    this.draw_block(new_location, new_content);
+                }
+            }
+        }
+        // let location_new = [BLOCK_PADDING_SIZE, BLOCK_PADDING_SIZE];
+        // this.draw_block(location_new, "5");
     }
 
     draw_bkg_block(location, color) {
@@ -116,9 +162,12 @@ class GameView {
 
 
 // Controller
+game_model = new GameModel();
 game_container = document.getElementById("game_container");
-game_view = new GameView(game_container)
-game_view.draw_game()
+game_view = new GameView(game_model.data, game_container);
+game_view.draw_game();
+
+// console.log(game_model.data);
 
 document.onkeydown = function(event) {
     const event_key = event.key;
