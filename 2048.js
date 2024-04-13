@@ -30,48 +30,48 @@ rand_choice = function (arr) {
 get_block_color = function (content) {
     switch (content) {
         case 2 ** 1:
-            block_color = "#f1e4d8";
-            block_font_color = "#756d62";
+            block_color = "#ffe1e1";
+            block_font_color = "#756d62"
             break;
         case 2 ** 2:
-            block_color = "#eedcc2";
-            block_font_color = "#756d62";
+            block_color = "#ffd2d2";
+            block_font_color = "#756d62"
             break;
         case 2 ** 3:
-            block_color = "#ffaf71";
-            block_font_color = "#ffffff";
+            block_color = "#ffa5a5";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 4:
-            block_color = "#ff9059";
-            block_font_color = "#ffffff";
+            block_color = "#ff7878";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 5:
-            block_color = "#ff7653";
-            block_font_color = "#ffffff";
+            block_color = "#ff4b4b";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 6:
             block_color = "#ff4d29";
-            block_font_color = "#ffffff";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 7:
-            block_color = "#f3cd62";
-            block_font_color = "#ffffff";
+            block_color = "#ff9600";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 8:
-            block_color = "#81cd43";
-            block_font_color = "#ffffff";
+            block_color = "#8cff00";
+            block_font_color = "#756d62"
             break;
         case 2 ** 9:
-            block_color = "#64bdfd";
-            block_font_color = "#ffffff";
+            block_color = "#00cd5f";
+            block_font_color = "#ffffff"
             break;
         case 2 ** 10:
-            block_color = "#00a9cc";
+            block_color = "#0091c8";
             block_font_color = "#ffffff"
             break;
         case 2 ** 11:
-            block_color = "#c3a3d4";
-            block_font_color = "#ffffff";
+            block_color = "#8f7ee5";
+            block_font_color = "#ffffff"
             break;
         default:
             block_color = "#ccbdaf";
