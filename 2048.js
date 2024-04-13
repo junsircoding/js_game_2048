@@ -1,23 +1,33 @@
 // Constant
 FIGURE_SIZE = 600;
-FIGURE_BKG_COLOR = "D4DFE6";
+FIGURE_BKG_COLOR = "bbaa9c";
 FIGURE_BDR_RADIUS = "15px";
 BLOCK_SIZE = 130;
 BLOCK_COUNT = 4;
-BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT+1);
-BLOCK_COLOR = "CADBE9";
-BLOCK_BKG_COLOR = "C4CFD6";
+BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT + 1);
+BLOCK_COLOR = "ccbdaf";
+BLOCK_BKG_COLOR = "ccbdaf";
+TITLE_FONT_SIZE = 45;
 BLOCK_FONT_SIZE = 60;
 BLOCK_FONT_COLOR = "444444";
+ARROW_LEFT = "ArrowLeft";
+ARROW_RIGHT = "ArrowRight";
+ARROW_UP = "ArrowUp";
+ARROW_DOWN = "ArrowDown";
 
 
 
 // GLobal Utility Functions
-randInt = function(a, b) {
+rand_int = function (a, b) {
     return a + Math.floor(Math.random() * (b + 1 - a));
 }
-randChoice = function(arr) {
-    return arr[randInt(0, arr.length - 1)];
+rand_choice = function (arr) {
+    if (arr.length >= 1) {
+        return arr[rand_int(0, arr.length - 1)];
+    }
+    else {
+        return []
+    }
 }
 
 
@@ -30,7 +40,7 @@ class GameModel {
 
     init_data() {
         this.data = [];
-        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
             let row_tmp = [];
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 row_tmp.push(null);
@@ -41,22 +51,34 @@ class GameModel {
         this.gen_new_block();
         this.gen_new_block();
     }
-    
+
+    trans_data() {
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
+                const tmp = this.data[row_index][col_index];
+                this.data[row_index][col_index] = this.data[col_index][row_index];
+                this.data[col_index][row_index] = tmp;
+            }
+        }
+    }
+
     gen_new_block() {
         let null_content_locations = [];
-        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 if (this.data[row_index][col_index] == null) {
                     null_content_locations.push([row_index, col_index]);
                 }
             }
         }
-    
-        let location = randChoice(null_content_locations);
-        this.data[location[0]][location[1]] = 2;
+
+        let location = rand_choice(null_content_locations);
+        if (location.length == 2) {
+            this.data[location[0]][location[1]] = 2;
+        }
     }
 
-    fusion_row(row) {
+    fusion_row(row, reverse = false) {
         // Classification discussion:
         // note: `tail` means content, `*tail` means point or index 
         // tail == null
@@ -68,39 +90,69 @@ class GameModel {
         //         *head == *tail
         //             head *= 2 && tail = null && *tail += 1 && *head += 1
         //         *head != *tail
-        //             *head += 1
+        //             *head += 1 && *tail += 1
+        
         let head = 0;
         let tail = 1;
+        let incr = 1;
 
-        while (tail < row.length) {
-            if (row[tail] == null){
-                tail += 1;
+        if (reverse == true) {
+            head = row.length - 1;
+            tail = head - 1;
+            incr = -1;
+        }
+
+        while (0 <= tail && tail < row.length) {
+            if (row[tail] == null) {
+                tail += incr;
             }
             else {
                 if (row[head] == null) {
                     row[head] = row[tail];
                     row[tail] = null;
-                    tail += 1;
+                    tail += incr;
                 }
                 else {
                     if (row[head] == row[tail]) {
                         row[head] *= 2;
                         row[tail] = null;
-                        tail += 1;
-                        head += 1;
+                        tail += incr;
+                        head += incr;
                     }
                     else {
-                        head += 1;
+                        head += incr;
+                        tail += incr;
                     }
                 }
             }
         }
     }
 
-    fusion_batch() {
-        for (let row of this.data) {
-            this.fusion_row(row);
+    fusion_batch(event_key) {
+        let reverse = (event_key == ARROW_RIGHT || event_key == ARROW_DOWN);
+        let valid_flag = true;
+        if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT){
+            for (let row of this.data) {
+                this.fusion_row(row, reverse);
+            }
         }
+        else if (event_key == ARROW_UP || event_key == ARROW_DOWN) {
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++){
+                let tmp = [];
+                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+                    tmp.push(this.data[row_index][col_index]);
+                }
+                this.fusion_row(tmp, reverse);
+                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+                    this.data[row_index][col_index] = tmp[row_index];
+                }
+            }
+        }
+        else {
+            valid_flag = false;
+        }
+
+        return valid_flag;
     }
 
 }
@@ -145,7 +197,7 @@ class GameView {
         //
         // num  row_index * z + (row_index - 1) * x col_index * z + (col_index - 1) * x
 
-        let location_top = row_index * BLOCK_PADDING_SIZE + (row_index-1) * BLOCK_SIZE
+        let location_top = row_index * BLOCK_PADDING_SIZE + (row_index - 1) * BLOCK_SIZE
         let location_left = col_index * BLOCK_PADDING_SIZE + (col_index - 1) * BLOCK_SIZE;
 
         return [location_top, location_left];
@@ -162,9 +214,9 @@ class GameView {
             }
         }
         // draw data
-        for (let row_index = 0;row_index < BLOCK_COUNT; row_index++){
-            for (let col_index = 0;col_index < BLOCK_COUNT; col_index++){
-                let new_location = this.block_num_to_location(row_index+1, col_index+1);
+        for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
+                let new_location = this.block_num_to_location(row_index + 1, col_index + 1);
                 let new_content = this.data[row_index][col_index];
                 if (new_content != null) {
                     this.draw_block(new_location, new_content);
@@ -187,7 +239,7 @@ class GameView {
         this.container.append(block);
         return block;
     }
-    
+
     draw_block(location, content) {
         let block = this.draw_bkg_block(location, BLOCK_COLOR);
 
@@ -208,35 +260,21 @@ class GameView {
 }
 
 
-
+title = document.getElementById("title");
+title.style.fontFamily = '"Archivo Black", sans-serif';
+title.style.fontSize = TITLE_FONT_SIZE;
 // Controller
 game_model = new GameModel();
 game_container = document.getElementById("game_container");
 game_view = new GameView(game_model.data, game_container);
 game_view.draw_game();
 
-console.log(game_model.data);
 
-document.onkeydown = function(event) {
-    const event_key = event.key;
-    switch(event_key) {
-        case "ArrowLeft":
-            console.log("left");
-            game_model.fusion_batch();
-            console.log(game_model.data);
-            game_view.draw_game();
-            break;
-        case "ArrowRight":
-            console.log("right");
-            break;
-        case "ArrowUp":
-            console.log("up");
-            break;
-        case "ArrowDown":
-            console.log("down");
-            break;
-        default:
-            console.log(`do nothing: ${event_key}.`);
+document.onkeydown = function (event) {
+    let valid_flag = game_model.fusion_batch(event.key);
+    if (valid_flag == true) {
+        game_model.gen_new_block();
+        game_view.draw_game();
     }
 }
 
@@ -254,7 +292,7 @@ class UnitTest {
         }
         return true;
     }
-    static test_fusion_row(){
+    static test_fusion_row() {
         let game_model = new GameModel();
         let test_cases = [
             [[2, null, 4, null], [2, 4, null, null]],
@@ -264,9 +302,13 @@ class UnitTest {
             [[4, 4, 4, null], [8, 4, null, null]],
             [[2, null, 4, null], [2, 4, null, null]],
             [[2, 2, 4, 4], [4, 8, null, null]],
+            [[2, 8, null, null], [2, 8, null, null]],
+            [[2, 8, 2, null], [2, 8, 2, null]],
+            [[2, 16, 4, null], [2, 16, 4, null]],
+            [[4, 8, 4, 2], [4, 8, 4, 2]],
         ];
         let errFlag = false;
-        
+
         for (let test_case of test_cases) {
             let input = test_case[0].slice();
             let input_origin = test_case[0].slice();
@@ -275,7 +317,7 @@ class UnitTest {
             game_model.fusion_row(input);
             if (!UnitTest.compare_row(input, output)) {
                 errFlag = true;
-                console.log("Error!", input_origin,input, output);
+                console.log("Error!", input_origin, input, output);
             }
         }
 
