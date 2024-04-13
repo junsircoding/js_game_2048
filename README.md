@@ -10,13 +10,13 @@ I learned this project from [this blogger’s Youtube video](https://www.youtube
 
 1. Clone the repo.
 
-    ```
+    ```shell
     git clone https://github.com/junsircoding/js_game_2048.git
     ```
 
 2. Start a simple server with Python 3.
 
-    ```
+    ```shell
     python -m http.server
     ```
 
