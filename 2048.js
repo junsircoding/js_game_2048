@@ -54,6 +54,47 @@ class GameModel {
         this.data[location[0]][location[1]] = 2;
     }
 
+    fusion_row(row) {
+        // Classification discussion:
+        // note: `tail` means content, `*tail` means point or index 
+        // tail == null
+        //     *tail += 1
+        // tail != null
+        //     head == null
+        //         head <=> tail && *tail += 1
+        //     head != null
+        //         *head == *tail
+        //             head *= 2 && tail = null && *tail += 1 && *head += 1
+        //         *head != *tail
+        //             *head += 1
+        let head = 0;
+        let tail = 1;
+
+        while (tail < row.length) {
+            if (row[tail] == null){
+                tail += 1;
+            }
+            else {
+                if (row[head] == null) {
+                    row[head] = row[tail];
+                    row[tail] = null;
+                    tail += 1;
+                }
+                else {
+                    if (row[head] == row[tail]) {
+                        row[head] *= 2;
+                        row[tail] = null;
+                        tail += 1;
+                        head += 1;
+                    }
+                    else {
+                        head += 1;
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -112,13 +153,12 @@ class GameView {
                 this.draw_bkg_block(location, BLOCK_BKG_COLOR);
             }
         }
-        // draw new blocks
+        // draw data
         for (let row_index = 0;row_index < BLOCK_COUNT; row_index++){
             for (let col_index = 0;col_index < BLOCK_COUNT; col_index++){
                 let new_location = this.block_num_to_location(row_index+1, col_index+1);
                 let new_content = this.data[row_index][col_index];
                 if (new_content != null) {
-                    console.log(row_index, col_index, new_content);
                     this.draw_block(new_location, new_content);
                 }
             }
@@ -191,3 +231,47 @@ document.onkeydown = function(event) {
 
 
 // Test
+class UnitTest {
+    static compare_row(row_01, row_02) {
+        if (row_01.length != row_02.length) {
+            return false;
+        }
+        for (let row_index = 0; row_index < row_01.length; row_index++) {
+            if (row_01[row_index] != row_02[row_index]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    static test_fusion_row(){
+        let game_model = new GameModel();
+        let test_cases = [
+            [[2, null, 4, null], [2, 4, null, null]],
+            [[null, null, null, null], [null, null, null, null]],
+            [[2, 2, 2, 2], [4, 4, null, null]],
+            [[2, 2, null, null], [4, null, null, null]],
+            [[4, 4, 4, null], [8, 4, null, null]],
+            [[2, null, 4, null], [2, 4, null, null]],
+            [[2, 2, 4, 4], [4, 8, null, null]],
+        ];
+        let errFlag = false;
+        
+        for (let test_case of test_cases) {
+            let input = test_case[0].slice();
+            let input_origin = test_case[0].slice();
+            let output = test_case[1].slice();
+            // note: fusion_row() is inplace
+            game_model.fusion_row(input);
+            if (!UnitTest.compare_row(input, output)) {
+                errFlag = true;
+                console.log("Error!", input_origin,input, output);
+            }
+        }
+
+        if (!errFlag) {
+            console.log("Pass ^_^");
+        }
+    }
+}
+
+// UnitTest.test_fusion_row()
