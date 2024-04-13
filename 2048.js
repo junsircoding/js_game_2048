@@ -1,15 +1,13 @@
 // Constant
 FIGURE_SIZE = 600;
-FIGURE_BKG_COLOR = "bbaa9c";
+FIGURE_BKG_COLOR = "#bbaa9c";
 FIGURE_BDR_RADIUS = "15px";
 BLOCK_SIZE = 130;
 BLOCK_COUNT = 4;
 BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT + 1);
-BLOCK_COLOR = "ccbdaf";
-BLOCK_BKG_COLOR = "ccbdaf";
+BLOCK_BKG_COLOR = "#ccbdaf";
 TITLE_FONT_SIZE = 45;
 BLOCK_FONT_SIZE = 60;
-BLOCK_FONT_COLOR = "444444";
 ARROW_LEFT = "ArrowLeft";
 ARROW_RIGHT = "ArrowRight";
 ARROW_UP = "ArrowUp";
@@ -28,6 +26,61 @@ rand_choice = function (arr) {
     else {
         return []
     }
+}
+get_block_color = function (content) {
+    switch (content) {
+        case 2 ** 1:
+            block_color = "#f1e4d8";
+            block_font_color = "#756d62";
+            break;
+        case 2 ** 2:
+            block_color = "#eedcc2";
+            block_font_color = "#756d62";
+            break;
+        case 2 ** 3:
+            block_color = "#ffaf71";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 4:
+            block_color = "#ff9059";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 5:
+            block_color = "#ff7653";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 6:
+            block_color = "#ff4d29";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 7:
+            block_color = "#f3cd62";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 8:
+            block_color = "#81cd43";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 9:
+            block_color = "#64bdfd";
+            block_font_color = "#ffffff";
+            break;
+        case 2 ** 10:
+            block_color = "#00a9cc";
+            block_font_color = "#ffffff"
+            break;
+        case 2 ** 11:
+            block_color = "#c3a3d4";
+            block_font_color = "#ffffff";
+            break;
+        default:
+            block_color = "#ccbdaf";
+            block_font_color = "#444444";
+            break;
+    }
+
+    return [block_color, block_font_color];
+
 }
 
 
@@ -91,7 +144,7 @@ class GameModel {
         //             head *= 2 && tail = null && *tail += 1 && *head += 1
         //         *head != *tail
         //             *head += 1 && *tail += 1
-        
+
         let head = 0;
         let tail = 1;
         let incr = 1;
@@ -131,19 +184,19 @@ class GameModel {
     fusion_batch(event_key) {
         let reverse = (event_key == ARROW_RIGHT || event_key == ARROW_DOWN);
         let valid_flag = true;
-        if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT){
+        if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT) {
             for (let row of this.data) {
                 this.fusion_row(row, reverse);
             }
         }
         else if (event_key == ARROW_UP || event_key == ARROW_DOWN) {
-            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++){
+            for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 let tmp = [];
-                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     tmp.push(this.data[row_index][col_index]);
                 }
                 this.fusion_row(tmp, reverse);
-                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++){
+                for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     this.data[row_index][col_index] = tmp[row_index];
                 }
             }
@@ -218,8 +271,9 @@ class GameView {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 let new_location = this.block_num_to_location(row_index + 1, col_index + 1);
                 let new_content = this.data[row_index][col_index];
+                let block_color_options = get_block_color(new_content);
                 if (new_content != null) {
-                    this.draw_block(new_location, new_content);
+                    this.draw_block(new_location, new_content, block_color_options[1]);
                 }
             }
         }
@@ -240,8 +294,9 @@ class GameView {
         return block;
     }
 
-    draw_block(location, content) {
-        let block = this.draw_bkg_block(location, BLOCK_COLOR);
+    draw_block(location, content, font_color) {
+        let block_options = get_block_color(content);
+        let block = this.draw_bkg_block(location, block_options[0]);
 
         let span = document.createElement("span");
         let text = document.createTextNode(content);
@@ -249,7 +304,7 @@ class GameView {
 
         span.style.fontFamily = '"Archivo Black", sans-serif';
         span.style.fontSize = BLOCK_FONT_SIZE;
-        span.style.color = BLOCK_FONT_COLOR;
+        span.style.color = font_color;
         span.style.position = "relative";
         span.style.textAlign = "center";
         span.style.top = (BLOCK_SIZE - span.offsetHeight) / 4;
