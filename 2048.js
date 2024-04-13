@@ -1,11 +1,14 @@
 // Constant
 FIGURE_SIZE = 600;
-FIGURE_BAK_COLOR = "D4DFE6";
+FIGURE_BKG_COLOR = "D4DFE6";
 FIGURE_BDR_RADIUS = "15px";
 BLOCK_SIZE = 130;
 BLOCK_COUNT = 4;
 BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT+1);
-BLOCK_BAK_COLOR = "CADBE9";
+BLOCK_COLOR = "CADBE9";
+BLOCK_BKG_COLOR = "C4CFD6";
+BLOCK_FONT_SIZE = 60;
+BLOCK_FONT_COLOR = "444444";
 
 
 
@@ -30,9 +33,10 @@ class GameView {
     init_container() {
         this.container.style.width = FIGURE_SIZE;
         this.container.style.height = FIGURE_SIZE;
-        this.container.style.backgroundColor = FIGURE_BAK_COLOR;
+        this.container.style.backgroundColor = FIGURE_BKG_COLOR;
         this.container.style.borderRadius = FIGURE_BDR_RADIUS;
         this.container.style.position = "relative";
+        this.container.style.display = "inline-block";
     }
 
     block_num_to_location(row_index, col_index) {
@@ -63,24 +67,48 @@ class GameView {
     }
 
     draw_game() {
+        // purge old html content
+        this.container.innerHTML = "";
+        // draw new block background
         for (let row_index = 1; row_index <= BLOCK_COUNT; row_index++) {
             for (let col_index = 1; col_index <= BLOCK_COUNT; col_index++) {
                 let location = this.block_num_to_location(row_index, col_index);
-                this.draw_block(location);
+                this.draw_bkg_block(location, BLOCK_BKG_COLOR);
             }
         }
+        // draw new blocks
+        let location_new = [BLOCK_PADDING_SIZE, BLOCK_PADDING_SIZE];
+        this.draw_block(location_new, "5");
     }
 
-    draw_block(location) {
+    draw_bkg_block(location, color) {
         let block = document.createElement("div");
         block.style.width = BLOCK_SIZE;
         block.style.height = BLOCK_SIZE;
-        block.style.backgroundColor = BLOCK_BAK_COLOR;
+        block.style.backgroundColor = color;
         block.style.borderRadius = "5px";
         block.style.position = "absolute";
         block.style.top = location[0];
         block.style.left = location[1];
         this.container.append(block);
+        return block;
+    }
+    
+    draw_block(location, content) {
+        let block = this.draw_bkg_block(location, BLOCK_COLOR);
+
+        let span = document.createElement("span");
+        let text = document.createTextNode(content);
+        span.appendChild(text);
+
+        span.style.fontFamily = '"Archivo Black", sans-serif';
+        span.style.fontSize = BLOCK_FONT_SIZE;
+        span.style.color = BLOCK_FONT_COLOR;
+        span.style.position = "relative";
+        span.style.textAlign = "center";
+        span.style.top = (BLOCK_SIZE - span.offsetHeight) / 4;
+
+        block.appendChild(span);
     }
 
 }
@@ -91,6 +119,26 @@ class GameView {
 game_container = document.getElementById("game_container");
 game_view = new GameView(game_container)
 game_view.draw_game()
+
+document.onkeydown = function(event) {
+    const event_key = event.key;
+    switch(event_key) {
+        case "ArrowLeft":
+            console.log("left");
+            break;
+        case "ArrowRight":
+            console.log("right");
+            break;
+        case "ArrowUp":
+            console.log("up");
+            break;
+        case "ArrowDown":
+            console.log("down");
+            break;
+        default:
+            console.log(`do nothing: ${event_key}.`);
+    }
+}
 
 
 // Test
