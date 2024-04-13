@@ -29,13 +29,8 @@ Enjoy it!
 ## Feature list to be completed
 
 - [x] Basic function development and color matching.
-
 - [] Automatically generate blended block colors instead of manually specifying them in each case.
-
 - [] Added score recording function.
-
 - [] When all grids are occupied and no further fusion can be generated, display the "Game Over" message.
-
 - [] When the grid fusions, display the movement trajectory.
-
 - [] Add artificial intelligence automatic play function.
