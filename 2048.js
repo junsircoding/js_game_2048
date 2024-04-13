@@ -37,6 +37,8 @@ class GameModel {
             }
             this.data.push(row_tmp);
         }
+        // first start game, 2 blocks shown
+        this.gen_new_block();
         this.gen_new_block();
     }
     
@@ -92,6 +94,12 @@ class GameModel {
                     }
                 }
             }
+        }
+    }
+
+    fusion_batch() {
+        for (let row of this.data) {
+            this.fusion_row(row);
         }
     }
 
@@ -207,13 +215,16 @@ game_container = document.getElementById("game_container");
 game_view = new GameView(game_model.data, game_container);
 game_view.draw_game();
 
-// console.log(game_model.data);
+console.log(game_model.data);
 
 document.onkeydown = function(event) {
     const event_key = event.key;
     switch(event_key) {
         case "ArrowLeft":
             console.log("left");
+            game_model.fusion_batch();
+            console.log(game_model.data);
+            game_view.draw_game();
             break;
         case "ArrowRight":
             console.log("right");
