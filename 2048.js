@@ -14,7 +14,6 @@ ARROW_UP = "ArrowUp";
 ARROW_DOWN = "ArrowDown";
 
 
-
 // GLobal Utility Functions
 rand_int = function (a, b) {
     return a + Math.floor(Math.random() * (b + 1 - a));
@@ -140,22 +139,24 @@ class GameModel {
         //     head == null
         //         head <=> tail && *tail += 1
         //     head != null
-        //         *head == *tail
+        //         head == tail
         //             head *= 2 && tail = null && *tail += 1 && *head += 1
-        //         *head != *tail
-        //             *head += 1 && *tail += 1
+        //         head != tail
+        //             *head += 1
+        //             (*head == *tail *tail+1) 
 
         let head = 0;
-        let tail = 1;
         let incr = 1;
-
         if (reverse == true) {
             head = row.length - 1;
-            tail = head - 1;
             incr = -1;
         }
+        let tail = head + incr;
 
-        while (0 <= tail && tail < row.length) {
+        let left_limit = 0;
+        let right_limit = row.length - 1;
+        
+        while (left_limit <= tail && tail <= right_limit) {
             if (row[tail] == null) {
                 tail += incr;
             }
@@ -174,7 +175,9 @@ class GameModel {
                     }
                     else {
                         head += incr;
-                        tail += incr;
+                        if (head == tail) {
+                            tail += incr;
+                        }
                     }
                 }
             }
@@ -183,6 +186,7 @@ class GameModel {
 
     fusion_batch(event_key) {
         let reverse = (event_key == ARROW_RIGHT || event_key == ARROW_DOWN);
+
         let valid_flag = true;
         if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT) {
             for (let row of this.data) {
@@ -191,14 +195,17 @@ class GameModel {
         }
         else if (event_key == ARROW_UP || event_key == ARROW_DOWN) {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
+
                 let tmp = [];
                 for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     tmp.push(this.data[row_index][col_index]);
                 }
                 this.fusion_row(tmp, reverse);
+
                 for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     this.data[row_index][col_index] = tmp[row_index];
                 }
+
             }
         }
         else {
@@ -209,7 +216,6 @@ class GameModel {
     }
 
 }
-
 
 
 // View
@@ -269,10 +275,10 @@ class GameView {
         // draw data
         for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
-                let new_location = this.block_num_to_location(row_index + 1, col_index + 1);
                 let new_content = this.data[row_index][col_index];
-                let block_color_options = get_block_color(new_content);
                 if (new_content != null) {
+                    let block_color_options = get_block_color(new_content);
+                    let new_location = this.block_num_to_location(row_index + 1, col_index + 1);
                     this.draw_block(new_location, new_content, block_color_options[1]);
                 }
             }
@@ -295,8 +301,8 @@ class GameView {
     }
 
     draw_block(location, content, font_color) {
-        let block_options = get_block_color(content);
-        let block = this.draw_bkg_block(location, block_options[0]);
+        let block_color_opts = get_block_color(content);
+        let block = this.draw_bkg_block(location, block_color_opts[0]);
 
         let span = document.createElement("span");
         let text = document.createTextNode(content);
@@ -315,10 +321,10 @@ class GameView {
 }
 
 
+// Controller
 title = document.getElementById("title");
 title.style.fontFamily = '"Archivo Black", sans-serif';
 title.style.fontSize = TITLE_FONT_SIZE;
-// Controller
 game_model = new GameModel();
 game_container = document.getElementById("game_container");
 game_view = new GameView(game_model.data, game_container);
@@ -361,18 +367,35 @@ class UnitTest {
             [[2, 8, 2, null], [2, 8, 2, null]],
             [[2, 16, 4, null], [2, 16, 4, null]],
             [[4, 8, 4, 2], [4, 8, 4, 2]],
+            [[128, null, null, 2], [128, 2, null, null]],
+            [[4, null, 8, null], [4, 8, null, null]]
+        ];
+        let test_cases_reverse = [
+            [[2, null, 4, null], [null, null, 2, 4]],
+            [[null, null, null, null], [null, null, null, null]],
+            [[2, 2, 2, 2], [null, null, 4, 4]],
+            [[2, 2, null, null], [null, null, null, 4]],
+            [[4, 4, 4, null], [null, null, 4, 8]],
+            [[2, null, 4, null], [null, null, 2, 4]],
+            [[2, 2, 4, 4], [null, null, 4, 8]],
+            [[2, 8, null, null], [null, null, 2, 8]],
+            [[2, 8, 2, null], [null, 2, 8, 2]],
+            [[2, 16, 4, null], [null, 2, 16, 4]],
+            [[4, 8, 4, 2], [4, 8, 4, 2]],
+            [[128, null, null, 2], [null, null, 128, 2]],
+            [[4, null, 8, null], [null, null, 4, 8]]
         ];
         let errFlag = false;
 
-        for (let test_case of test_cases) {
+        for (let test_case of test_cases_reverse) {
             let input = test_case[0].slice();
             let input_origin = test_case[0].slice();
             let output = test_case[1].slice();
             // note: fusion_row() is inplace
-            game_model.fusion_row(input);
+            game_model.fusion_row(input, true);
             if (!UnitTest.compare_row(input, output)) {
                 errFlag = true;
-                console.log("Error!", input_origin, input, output);
+                console.log("Error!", "origin:", input_origin, "error:", input, "right", output);
             }
         }
 
@@ -382,4 +405,4 @@ class UnitTest {
     }
 }
 
-// UnitTest.test_fusion_row()
+// UnitTest.test_fusion_row();
