@@ -29,7 +29,7 @@ Enjoy it!
 ## Feature list to be completed
 
 - [x] Basic function development and color matching.
-- [ ] When the grid fusions, display the movement trajectory.
+- [x] When the grid fusions, display the movement trajectory.
 - [ ] When the grid with the content "2048" appears, display the "You Win" message.
 - [ ] When all grids are occupied and no further fusion can be generated, display the "Game Over" message.
 - [ ] Added score recording function.
