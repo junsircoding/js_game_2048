@@ -4,10 +4,12 @@ FIGURE_BKG_COLOR = "#bbaa9c";
 FIGURE_BDR_RADIUS = "15px";
 BLOCK_SIZE = 130;
 BLOCK_COUNT = 4;
+ANIMATION_TIME = 0.3;
 BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT + 1);
 BLOCK_BKG_COLOR = "#ccbdaf";
 TITLE_FONT_SIZE = 45;
 BLOCK_FONT_SIZE = 60;
+FRAME_PER_SECOND = 30;
 ARROW_LEFT = "ArrowLeft";
 ARROW_RIGHT = "ArrowRight";
 ARROW_UP = "ArrowUp";
@@ -143,7 +145,9 @@ class GameModel {
         //             head *= 2 && tail = null && *tail += 1 && *head += 1
         //         head != tail
         //             *head += 1
-        //             (*head == *tail *tail+1) 
+        //             (*head == *tail *tail+1)
+
+        let move = [];
 
         let head = 0;
         let incr = 1;
@@ -164,12 +168,14 @@ class GameModel {
                 if (row[head] == null) {
                     row[head] = row[tail];
                     row[tail] = null;
+                    move.push([tail, head]);
                     tail += incr;
                 }
                 else {
                     if (row[head] == row[tail]) {
                         row[head] *= 2;
                         row[tail] = null;
+                        move.push([tail, head]);
                         tail += incr;
                         head += incr;
                     }
@@ -182,25 +188,34 @@ class GameModel {
                 }
             }
         }
+        return move;
     }
-
+    
     fusion_batch(event_key) {
+        let moves = [];
         let reverse = (event_key == ARROW_RIGHT || event_key == ARROW_DOWN);
-
+        
         let valid_flag = true;
         if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT) {
-            for (let row of this.data) {
-                this.fusion_row(row, reverse);
+            for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
+                let row_move = this.fusion_row(this.data[row_index], reverse);
+                for (let move of row_move) {
+                    moves.push([[row_index, move[0]], [row_index, move[1]]]);
+                }
             }
         }
         else if (event_key == ARROW_UP || event_key == ARROW_DOWN) {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
-
+                
                 let tmp = [];
                 for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     tmp.push(this.data[row_index][col_index]);
                 }
-                this.fusion_row(tmp, reverse);
+                let col_move = this.fusion_row(tmp, reverse);
+                for (let move of col_move) {
+                    moves.push([[move[0], col_index], [move[1], col_index]]);
+
+                }
 
                 for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     this.data[row_index][col_index] = tmp[row_index];
@@ -211,8 +226,13 @@ class GameModel {
         else {
             valid_flag = false;
         }
+        
+        if (moves.length == 0) {
+            valid_flag = false;
+        }
+        // console.log(moves, moves.length, valid_flag);
 
-        return valid_flag;
+        return [valid_flag, moves];
     }
 
 }
@@ -222,6 +242,7 @@ class GameModel {
 class GameView {
     constructor(data, container) {
         this.data = data;
+        this.blocks = [];
         this.container = container;
         this.init_container();
     }
@@ -233,6 +254,7 @@ class GameView {
         this.container.style.borderRadius = FIGURE_BDR_RADIUS;
         this.container.style.position = "relative";
         this.container.style.display = "inline-block";
+        this.container.zIndex = 1;
     }
 
     block_num_to_location(row_index, col_index) {
@@ -273,18 +295,60 @@ class GameView {
             }
         }
         // draw data
+        this.blocks = [];
         for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
+            let tmp = [];
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 let new_content = this.data[row_index][col_index];
                 if (new_content != null) {
                     let block_color_options = get_block_color(new_content);
                     let new_location = this.block_num_to_location(row_index + 1, col_index + 1);
-                    this.draw_block(new_location, new_content, block_color_options[1]);
+                    let block = this.draw_block(new_location, new_content, block_color_options[1]);
+                    tmp.push(block);
+                }
+                else{
+                    tmp.push(null);
                 }
             }
+            this.blocks.push(tmp);
         }
         // let location_new = [BLOCK_PADDING_SIZE, BLOCK_PADDING_SIZE];
         // this.draw_block(location_new, "5");
+    }
+
+    draw_animate(moves) {
+        this.draw_frame(moves, 0, ANIMATION_TIME);
+
+    }
+
+    draw_frame(moves, curr_time, total_time){
+        if (curr_time < total_time) {
+            setTimeout(
+                () => {
+                    this.draw_frame(moves, curr_time + 1 / FRAME_PER_SECOND, total_time);
+                }, 1 / FRAME_PER_SECOND * 1000
+            );
+
+            for (let move of moves) {
+                // moves = [ [[i, j], [i, j]], [] ]
+                // move = [[i, j], [i, j]]
+                let block = this.blocks[move[0][0]][move[0][1]];
+                let source = this.block_num_to_location(move[0][0]+1, move[0][1]+1);
+                let dest = this.block_num_to_location(move[1][0]+1, move[1][1]+1);
+                let curr = [
+                    source[0] + curr_time / total_time * (dest[0] - source[0]),
+                    source[1] + curr_time / total_time * (dest[1] - source[1]),
+                ];
+                block.style.top = curr[0];
+                block.style.left = curr[1];
+            }
+
+        }
+        else {
+            this.draw_game();
+
+        }
+
     }
 
     draw_bkg_block(location, color) {
@@ -296,6 +360,7 @@ class GameView {
         block.style.position = "absolute";
         block.style.top = location[0];
         block.style.left = location[1];
+        block.style.zIndex = 3;
         this.container.append(block);
         return block;
     }
@@ -308,6 +373,8 @@ class GameView {
         let text = document.createTextNode(content);
         span.appendChild(text);
 
+        block.style.zIndex = 5;
+
         span.style.fontFamily = '"Archivo Black", sans-serif';
         span.style.fontSize = BLOCK_FONT_SIZE;
         span.style.color = font_color;
@@ -316,6 +383,7 @@ class GameView {
         span.style.top = (BLOCK_SIZE - span.offsetHeight) / 4;
 
         block.appendChild(span);
+        return block;
     }
 
 }
@@ -332,10 +400,12 @@ game_view.draw_game();
 
 
 document.onkeydown = function (event) {
-    let valid_flag = game_model.fusion_batch(event.key);
+    let fusion_result = game_model.fusion_batch(event.key);
+    let valid_flag = fusion_result[0];
+    let moves = fusion_result[1];
     if (valid_flag == true) {
         game_model.gen_new_block();
-        game_view.draw_game();
+        game_view.draw_animate(moves);
     }
 }
 
