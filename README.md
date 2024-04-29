@@ -26,6 +26,15 @@ Enjoy it!
 
 ![](game.png)
 
+4. Play games with AI
+
+Open the Chrome browser's `inspect` interface (F12)
+
+```javascript
+agent = new GameAgent(game_model);
+agent.play(100);
+```
+
 ## Feature list to be completed
 
 - [x] Basic function development and color matching.
@@ -34,4 +43,4 @@ Enjoy it!
 - [ ] When all grids are occupied and no further fusion can be generated, display the "Game Over" message.
 - [x] Added score recording function.
 - [ ] Automatically generate blended block colors instead of manually specifying them in each case.
-- [ ] Add artificial intelligence automatic play function.
+- [x] Add artificial intelligence automatic play function.
