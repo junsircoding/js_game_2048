@@ -425,7 +425,6 @@ document.onkeydown = function (event) {
     if (valid_flag == true) {
         game_model.gen_new_block();
         game_view.draw_animate(moves);
-        console.log(fusion_result.points);
         game_points.innerHTML = `Points: ${fusion_result.points}`;
     }
 }
