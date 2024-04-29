@@ -8,6 +8,7 @@ ANIMATION_TIME = 0.1;
 BLOCK_PADDING_SIZE = (FIGURE_SIZE - BLOCK_COUNT * BLOCK_SIZE) / (BLOCK_COUNT + 1);
 BLOCK_BKG_COLOR = "#ccbdaf";
 TITLE_FONT_SIZE = 45;
+TITLE_FONT_SIZE_POINTS = 20;
 BLOCK_FONT_SIZE = 60;
 FRAME_PER_SECOND = 30;
 ARROW_LEFT = "ArrowLeft";
@@ -89,10 +90,12 @@ get_block_color = function (content) {
 class GameModel {
     constructor() {
         this.data = [];
+        this.points = 0;
         this.init_data();
     }
 
     init_data() {
+        this.points = 0;
         this.data = [];
         for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
             let row_tmp = [];
@@ -146,6 +149,7 @@ class GameModel {
         //         head != tail
         //             *head += 1
         //             (*head == *tail *tail+1)
+        let points = 0;
 
         let move = [];
 
@@ -175,6 +179,7 @@ class GameModel {
                     if (row[head] == row[tail]) {
                         row[head] *= 2;
                         row[tail] = null;
+                        points += row[head];
                         move.push([tail, head]);
                         tail += incr;
                         head += incr;
@@ -188,7 +193,10 @@ class GameModel {
                 }
             }
         }
-        return move;
+        return {
+            "move": move,
+            "points": points
+        };
     }
     
     fusion_batch(event_key) {
@@ -198,7 +206,9 @@ class GameModel {
         let valid_flag = true;
         if (event_key == ARROW_LEFT || event_key == ARROW_RIGHT) {
             for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
-                let row_move = this.fusion_row(this.data[row_index], reverse);
+                let fusion_obj = this.fusion_row(this.data[row_index], reverse);
+                let row_move = fusion_obj.move;
+                this.points += fusion_obj.points;
                 for (let move of row_move) {
                     moves.push([[row_index, move[0]], [row_index, move[1]]]);
                 }
@@ -211,7 +221,9 @@ class GameModel {
                 for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
                     tmp.push(this.data[row_index][col_index]);
                 }
-                let col_move = this.fusion_row(tmp, reverse);
+                let fusion_obj = this.fusion_row(tmp, reverse);
+                let col_move = fusion_obj.move;
+                this.points += fusion_obj.points;
                 for (let move of col_move) {
                     moves.push([[move[0], col_index], [move[1], col_index]]);
 
@@ -232,7 +244,11 @@ class GameModel {
         }
         // console.log(moves, moves.length, valid_flag);
 
-        return [valid_flag, moves];
+        return {
+            "valid_flag": valid_flag,
+            "moves": moves,
+            "points": this.points
+        }
     }
 
 }
@@ -390,22 +406,27 @@ class GameView {
 
 
 // Controller
-title = document.getElementById("title");
+var title = document.getElementById("title");
+var game_points = document.getElementById("points");
 title.style.fontFamily = '"Archivo Black", sans-serif';
 title.style.fontSize = TITLE_FONT_SIZE;
-game_model = new GameModel();
-game_container = document.getElementById("game_container");
-game_view = new GameView(game_model.data, game_container);
+game_points.style.fontFamily = '"Archivo Black", sans-serif';
+game_points.style.fontSize = TITLE_FONT_SIZE_POINTS;
+var game_model = new GameModel();
+var game_container = document.getElementById("game_container");
+var game_view = new GameView(game_model.data, game_container);
 game_view.draw_game();
 
 
 document.onkeydown = function (event) {
     let fusion_result = game_model.fusion_batch(event.key);
-    let valid_flag = fusion_result[0];
-    let moves = fusion_result[1];
+    let valid_flag = fusion_result.valid_flag;
+    let moves = fusion_result.moves;
     if (valid_flag == true) {
         game_model.gen_new_block();
         game_view.draw_animate(moves);
+        console.log(fusion_result.points);
+        game_points.innerHTML = `Points: ${fusion_result.points}`;
     }
 }
 
