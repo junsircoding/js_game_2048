@@ -35,12 +35,14 @@ agent = new GameAgent(game_model);
 agent.play(100);
 ```
 
+![](game_over.png)
+
 ## Feature list to be completed
 
 - [x] Basic function development and color matching.
 - [x] When the grid fusions, display the movement trajectory.
-- [ ] When the grid with the content "2048" appears, display the "You Win" message.
-- [ ] When all grids are occupied and no further fusion can be generated, display the "Game Over" message.
+- [x] When the grid with the content "2048" appears, display the "You Win" message.
+- [x] When all grids are occupied and no further fusion can be generated, display the "Game Over" message.
 - [x] Added score recording function.
 - [ ] Automatically generate blended block colors instead of manually specifying them in each case.
 - [x] Add artificial intelligence automatic play function.

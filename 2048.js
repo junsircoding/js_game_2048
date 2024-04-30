@@ -1,6 +1,7 @@
 // Constant
 FIGURE_SIZE = 600;
 FIGURE_BKG_COLOR = "#bbaa9c";
+WIN_POINT = 2048;
 FIGURE_BDR_RADIUS = "15px";
 BLOCK_SIZE = 130;
 BLOCK_COUNT = 4;
@@ -119,19 +120,32 @@ class GameModel {
         }
     }
 
-    gen_new_block() {
+    get_null_localtion() {
         let null_content_locations = [];
+        let is_win = false;
         for (let row_index = 0; row_index < BLOCK_COUNT; row_index++) {
             for (let col_index = 0; col_index < BLOCK_COUNT; col_index++) {
                 if (this.data[row_index][col_index] == null) {
                     null_content_locations.push([row_index, col_index]);
                 }
+                else if (this.data[row_index][col_index] == WIN_POINT) {
+                    is_win = true;
+                }
             }
         }
+        return {
+            "null_content_locations":null_content_locations,
+            "is_win":is_win
+        };
+    }
 
-        let location = rand_choice(null_content_locations);
-        if (location.length == 2) {
-            this.data[location[0]][location[1]] = 2;
+    gen_new_block() {
+        let null_localtion_result = this.get_null_localtion();
+        if (null_localtion_result.null_content_locations.length != 0) {
+            let location = rand_choice(null_localtion_result.null_content_locations);
+            if (location.length == 2) {
+                this.data[location[0]][location[1]] = 2;
+            }
         }
     }
 
@@ -426,6 +440,16 @@ document.onkeydown = function (event) {
         game_model.gen_new_block();
         game_view.draw_animate(moves);
         game_points.innerHTML = `Points: ${fusion_result.points}`;
+    }
+    else {
+        let null_localtion_result = game_model.get_null_localtion();
+        if (null_localtion_result.null_content_locations.length == 0) {
+            game_points.innerHTML = `Game Over! Your points is: ${fusion_result.points}`;
+        }
+        else if (null_localtion_result.is_win == true) {
+            game_points.innerHTML = `You Win! Your points is: ${fusion_result.points}`;
+
+        }
     }
 }
 
